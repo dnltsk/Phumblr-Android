@@ -20,12 +20,18 @@ import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
 import com.wherecamp.hackathon.phumblr.R;
 import com.wherecamp.hackathon.phumblr.activities.MainActivity;
+import com.wherecamp.hackathon.phumblr.models.FlickrImage;
+import com.wherecamp.hackathon.phumblr.models.Wikipedia;
+import com.wherecamp.hackathon.phumblr.utils.ImageUtils;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.android.gms.wearable.PutDataRequest.WEAR_URI_SCHEME;
@@ -37,11 +43,34 @@ public class NotificationUpdateService extends WearableListenerService implement
     private static final String TAG = "NotificationUpdate";
 
     private static final int TIMEOUT_MS = 10000;
+
+    public static final String SECTION_PATH = "/section";
+    public static final String SECTION_TITLE = "title";
+    public static final String SECTION_CONTENT = "content";
+
+    public static final String WIKI_PATH = "/wiki";
+    public static final String WIKI_TIMESTAMP = "timestamp";
+    public static final String WIKI_TITLE = "title";
+    public static final String WIKI_ID = "id";
+    public static final String WIKI_DISTANCE = "distance";
+    public static final String WIKI_SECTION_TITLE = "section_title";
+    public static final String WIKI_SECTION_CONTENT = "section_content";
+
+    public static final String FLICKR_PATH = "/flickr";
+    public static final String FLICKR_TIMESTAMP = "timestamp";
+    public static final String FLICKR_IMAGE = "image";
+    public static final String FLICKR_VIEWS = "views";
+    public static final String FLICKR_ID = "id";
+
     public static final String NOTIFICATION_PATH = "/notification";
     public static final String NOTIFICATION_TIMESTAMP = "timestamp";
     public static final String NOTIFICATION_TITLE = "title";
     public static final String NOTIFICATION_CONTENT = "content";
     public static final String ACTION_DISMISS = "com.wherecamp.hackathon.phumblr.DISMISS";
+
+    private static ArrayList<FlickrImage> flickr_images = new ArrayList<>();
+    private static ArrayList<Wikipedia> wikis = new ArrayList<>();
+    private static ArrayList<String[]> sections = new ArrayList<>();
 
     private GoogleApiClient googleApiClient;
     private int notificationId = 001;
@@ -60,6 +89,44 @@ public class NotificationUpdateService extends WearableListenerService implement
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
         Log.e(TAG, "onDataChanged()");
+
+        if (flickr_images.size()>5) {
+            flickr_images = new ArrayList<>();
+        }
+
+        for(DataEvent dataEvent: dataEvents) {
+            if (dataEvent.getType() == DataEvent.TYPE_CHANGED) {
+                if (FLICKR_PATH.equals(dataEvent.getDataItem().getUri().getPath())) {
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(dataEvent.getDataItem());
+                    Bitmap img = loadBitmapFromAsset(dataMapItem.getDataMap().getAsset(FLICKR_IMAGE));
+                    String time = dataMapItem.getDataMap().getString(FLICKR_TIMESTAMP);
+                    String views = dataMapItem.getDataMap().getString(FLICKR_VIEWS);
+                    String id = dataMapItem.getDataMap().getString(FLICKR_ID);
+                    flickr_images.add(new FlickrImage(views, "Phumblr #"+id, img, id));
+                }
+            }
+        }
+
+        if (wikis.size()>5) {
+            wikis = new ArrayList<>();
+        }
+
+        for(DataEvent dataEvent: dataEvents) {
+            if (dataEvent.getType() == DataEvent.TYPE_CHANGED) {
+                if (WIKI_PATH.equals(dataEvent.getDataItem().getUri().getPath())) {
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(dataEvent.getDataItem());
+                    String time = dataMapItem.getDataMap().getString(WIKI_TIMESTAMP);
+                    String title = dataMapItem.getDataMap().getString(WIKI_TITLE);
+                    String id = dataMapItem.getDataMap().getString(WIKI_ID);
+                    String distance = dataMapItem.getDataMap().getString(WIKI_DISTANCE);
+                    wikis.add(new Wikipedia(title, distance, sections));
+                    sections = new ArrayList<>();
+                }
+            }
+        }
+
+        WearApplication.setFlickrImages(flickr_images);
+
         for(DataEvent dataEvent: dataEvents) {
             if (dataEvent.getType() == DataEvent.TYPE_CHANGED) {
                 if (NOTIFICATION_PATH.equals(dataEvent.getDataItem().getUri().getPath())) {
@@ -171,9 +238,6 @@ public class NotificationUpdateService extends WearableListenerService implement
         public void onConnected(Bundle bundle) {
             final Uri dataItemUri =
                     new Uri.Builder().scheme(WEAR_URI_SCHEME).path(NOTIFICATION_PATH).build();
-            if (Log.isLoggable(TAG, Log.DEBUG)) {
-                Log.d(TAG, "Deleting Uri: " + dataItemUri.toString());
-            }
             Wearable.DataApi.deleteDataItems(
                     mGoogleApiClient, dataItemUri).setResultCallback(this);
         }

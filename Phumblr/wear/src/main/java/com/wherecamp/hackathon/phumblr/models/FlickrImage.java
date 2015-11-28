@@ -7,8 +7,9 @@ import android.graphics.Bitmap;
  */
 public class FlickrImage {
 
+
     public String getViews() {
-        return views;
+        return "Image has " + views + " View";
     }
 
     public String getTitle() {
@@ -19,13 +20,20 @@ public class FlickrImage {
         return image;
     }
 
+
+    public String getId() {
+        return id;
+    }
+
     private Bitmap image;
     private final String views;
     private final String title;
+    private final String id;
 
-    public FlickrImage(String views, String title, Bitmap img) {
+    public FlickrImage(String views, String title, Bitmap img, String id) {
         this.views = views;
         this.title = title;
         this.image = img;
+        this.id = id;
     }
 }

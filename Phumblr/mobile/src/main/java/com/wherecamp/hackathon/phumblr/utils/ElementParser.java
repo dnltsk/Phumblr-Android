@@ -66,26 +66,29 @@ public class ElementParser {
                 JSONObject im_js = (JSONObject) imgs.get(i);
                 String url = im_js.getString(URL_TAG);
                 String views = im_js.getString(VIEWS_TAG);
-                flickrImages.add(new FlickrImage(url, views));
+                String id = im_js.getString(PHOTO_ID_TAG);
+                flickrImages.add(new FlickrImage(url, views, ""+(i+1)));
             }
 
+            /*
             for (int i=0; i<wiks.length(); i++) {
                 JSONObject wk_js = (JSONObject) wiks.get(i);
                 String title = wk_js.getString(TITLE_TAG);
                 String dist = wk_js.getString(DISTANCE_TAG);
+                String wiki_id = wk_js.getString(WIKI_ID_TAG);
                 JSONArray secs = wk_js.getJSONArray(SECTIONS_TAG);
 
-                HashMap<String, String> sections = new HashMap<>();
+                ArrayList<String[]> sections = new ArrayList<>();
 
                 for (int j=0; j<secs.length(); j++) {
                     JSONObject section = (JSONObject) secs.get(j);
                     String section_title = section.getString(TITLE_TAG);
                     String content = section.getString(CONTENT_TAG);
-                    sections.put(section_title, content);
+                    sections.add(new String[]{section_title, content});
                 }
 
-                wikipedias.add(new Wikipedia(title, dist, sections));
-            }
+                wikipedias.add(new Wikipedia(title, dist, wiki_id, sections));
+            }*/
         } catch (JSONException e) {
             e.printStackTrace();
         }

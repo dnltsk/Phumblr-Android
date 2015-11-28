@@ -1,6 +1,9 @@
 package com.wherecamp.hackathon.phumblr.fragments;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.wearable.view.DelayedConfirmationView;
 import android.view.LayoutInflater;
@@ -9,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.wherecamp.hackathon.phumblr.R;
+import com.wherecamp.hackathon.phumblr.activities.WikiActivity;
 
 /**
  * Created by Nice Fontaine on 27.11.2015.
@@ -20,6 +24,19 @@ public class FragmentSeeWiki extends Fragment {
 
     private DelayedConfirmationView mConfirmationView;
     private TextView mTextView;
+    private Activity activity;
+
+    public int getRow() {
+        return row;
+    }
+
+    private int row;
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        this.activity = activity;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -41,8 +58,14 @@ public class FragmentSeeWiki extends Fragment {
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO: INTENT to wiki activity
+                Intent intent = new Intent(activity, WikiActivity.class);
+                intent.putExtra("image_id", getRow());
+                startActivity(intent);
             }
         });
+    }
+
+    public void setImageId(int row) {
+        this.row = row;
     }
 }

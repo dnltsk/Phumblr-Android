@@ -22,19 +22,19 @@ public class VolleyRequests {
     private OnResponseListener mCallback;
     private String url;
     private int MY_SOCKET_TIMEOUT_MS = 10000;
+    private RequestQueue requestQueue;
 
     public interface OnResponseListener {
         void onTextResponse(String text);
-        void onImageResponse(Bitmap bitmap);
     }
 
     public VolleyRequests(Object object, String url) {
+        requestQueue = VolleySingleton.getInstance().getRequestQueue();
         this.mCallback = (OnResponseListener) object;
         this.url = url;
     }
 
     public void makeRequest() {
-        RequestQueue requestQueue = VolleySingleton.getInstance().getRequestQueue();
         Log.d(TAG, url);
         StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
 
@@ -54,28 +54,6 @@ public class VolleyRequests {
                 MY_SOCKET_TIMEOUT_MS,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        requestQueue.add(request);
-    }
-
-    public void makeImageRequest() {
-        RequestQueue requestQueue = VolleySingleton.getInstance().getRequestQueue();
-        Log.d(TAG, url);
-        ImageRequest request = new ImageRequest(url,
-                new Response.Listener<Bitmap>() {
-
-                    @Override
-                    public void onResponse(Bitmap bitmap) {
-                       mCallback.onImageResponse(bitmap);
-                    }
-                }, 0, 0, null,
-                new Response.ErrorListener() {
-                    public void onErrorResponse(VolleyError error) {
-                        Bitmap bm = BitmapFactory.decodeResource(
-                                MyApplication.getResource(), R.drawable.no_image);
-                        mCallback.onImageResponse(bm);
-                    }
-                });
 
         requestQueue.add(request);
     }

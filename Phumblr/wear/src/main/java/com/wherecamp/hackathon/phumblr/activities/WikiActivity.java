@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.app.Activity;
+import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.support.wearable.view.CardFragment;
 import android.support.wearable.view.DotsPageIndicator;
@@ -16,11 +18,12 @@ import com.wherecamp.hackathon.phumblr.R;
 import com.wherecamp.hackathon.phumblr.fragments.FragmentAddNote;
 import com.wherecamp.hackathon.phumblr.fragments.FragmentSeeWiki;
 import com.wherecamp.hackathon.phumblr.models.FlickrImage;
+import com.wherecamp.hackathon.phumblr.models.Wikipedia;
 import com.wherecamp.hackathon.phumblr.services.WearApplication;
 
 import java.util.ArrayList;
 
-public class MainActivity extends FragmentActivity {
+public class WikiActivity extends FragmentActivity {
 
     private static final String TAG = "MainActivity";
 
@@ -28,23 +31,27 @@ public class MainActivity extends FragmentActivity {
     private GridViewPager mViewPager;
     private ImageView mImageView;
 
+    private static ArrayList<Wikipedia> wikis = new ArrayList<>();
     private static ArrayList<FlickrImage> flickr_images = new ArrayList<>();
+
+    private int image_id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        setData();
+        setContentView(R.layout.activity_wiki);
+
+        image_id = getIntent().getParcelableExtra("image_id");
 
         // Get UI references
-        mImageView = (ImageView)findViewById(R.id.flickr_image);
+        mImageView = (ImageView) findViewById(R.id.wiki_image);
         mImageView.setScaleType(ImageView.ScaleType.FIT_START);
         mImageView.setBackgroundColor(Color.parseColor("gray"));
         mPageIndicator = (DotsPageIndicator) findViewById(R.id.page_indicator);
         mViewPager = (GridViewPager) findViewById(R.id.pager);
 
         // Assigns an adapter to provide the content for this pager
-        mViewPager.setAdapter(new FlickrGridPagerAdapter(this));
+        mViewPager.setAdapter(new WikiGridPagerAdapter(this));
 
         mPageIndicator.setPager(mViewPager);
         mViewPager.setOnPageChangeListener(new GridViewPager.OnPageChangeListener() {
@@ -58,7 +65,7 @@ public class MainActivity extends FragmentActivity {
 
             @Override
             public void onPageSelected(int row, int column) {
-                mImageView.setImageBitmap(flickr_images.get(row).getImage());
+                mImageView.setImageBitmap(flickr_images.get(image_id).getImage());
                 mPageIndicator.onPageSelected(row, column);
             }
 
@@ -68,7 +75,7 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
-        mImageView.setImageBitmap(flickr_images.get(0).getImage());
+        mImageView.setImageBitmap(flickr_images.get(image_id).getImage());
     }
 
     @Override
@@ -81,57 +88,47 @@ public class MainActivity extends FragmentActivity {
         super.onStop();
     }
 
-    private static final class FlickrGridPagerAdapter extends FragmentGridPagerAdapter {
+    private static final class WikiGridPagerAdapter extends FragmentGridPagerAdapter {
 
-        private static final int SUMMARY = 0;
-        private static final int ADD_NOTES = 1;
-        private static final int WIKIS = 2;
-        private static final int COLUMNS = 3;
+        private static final int SECTION1 = 0;
 
-        private FlickrGridPagerAdapter(FragmentActivity activity) {
+        private WikiGridPagerAdapter(FragmentActivity activity) {
             super(activity.getFragmentManager());
         }
 
         @Override
         public Fragment getFragment(int row, int column) {
+            ArrayList<String[]> sections = wikis.get(row).getSections();
+
             switch (column) {
-                case SUMMARY:
-                    String title = flickr_images.get(row).getTitle();
-                    String views = flickr_images.get(row).getViews();
-                    return CardFragment.create(title, views);
-                case ADD_NOTES:
-                    return new FragmentAddNote();
-                case WIKIS:
-                    FragmentSeeWiki fsw = new FragmentSeeWiki();
-                    fsw.setImageId(row);
-                    return fsw;
+                case SECTION1:
+                    String title1 = wikis.get(row).getTitle();
+                    String views1 = "Distance to entry is "+wikis.get(row).getDistance()+" m";
+                    return CardFragment.create(title1, views1);
+
                 default:
-                    throw new IllegalArgumentException("getFragment(row=" + row + ", column=" + column + ")");
+                    String title2 = sections.get(column-1)[0];
+                    String views2 = sections.get(column-1)[1];
+                    return CardFragment.create(title2, views2);
+
             }
         }
 
         @Override
         public int getRowCount() {
-            return flickr_images.size();
+            return wikis.size();
         }
 
         @Override
         public int getColumnCount(int row) {
-            return COLUMNS;
-        }
-    }
-
-
-    private void setData() {
-        flickr_images = WearApplication.getFlickrImages();
-
-        if (flickr_images.size() == 0) {
-            Bitmap icon1 = BitmapFactory.decodeResource(getResources(), R.drawable.bmw);
-            Bitmap icon2 = BitmapFactory.decodeResource(getResources(), R.drawable.lambo);
-            Bitmap icon3 = BitmapFactory.decodeResource(getResources(), R.drawable.what);
-            flickr_images.add(new FlickrImage("167", "Phumblr #1", icon1, "1"));
-            flickr_images.add(new FlickrImage("37", "Phumblr #2", icon2, "2"));
-            flickr_images.add(new FlickrImage("17", "Phumblr #3", icon3, "3"));
+            int max = 0;
+            for (Wikipedia wiki :wikis) {
+                int len = wiki.getSections().size();
+                if (len > max) {
+                    max = len;
+                }
+            }
+            return max;
         }
     }
 }

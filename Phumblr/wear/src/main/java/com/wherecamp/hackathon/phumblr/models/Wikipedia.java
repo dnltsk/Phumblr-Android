@@ -1,5 +1,6 @@
 package com.wherecamp.hackathon.phumblr.models;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -15,15 +16,15 @@ public class Wikipedia {
         return distance;
     }
 
-    public HashMap<String, String> getSections() {
+    public ArrayList<String[]> getSections() {
         return sections;
     }
 
     private final String title;
     private final String distance;
-    private final HashMap<String, String> sections;
+    private final ArrayList<String[]> sections;
 
-    public Wikipedia(String title, String distance, HashMap<String, String> sections) {
+    public Wikipedia(String title, String distance, ArrayList<String[]> sections) {
         this.title = title;
         this.distance = distance;
         this.sections = sections;
