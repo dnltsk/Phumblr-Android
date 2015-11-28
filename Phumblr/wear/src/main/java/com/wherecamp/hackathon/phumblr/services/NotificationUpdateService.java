@@ -96,10 +96,21 @@ public class NotificationUpdateService extends WearableListenerService implement
 
         for(DataEvent dataEvent: dataEvents) {
             if (dataEvent.getType() == DataEvent.TYPE_CHANGED) {
+                if (SECTION_PATH.equals(dataEvent.getDataItem().getUri().getPath())) {
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(dataEvent.getDataItem());
+                    String title = dataMapItem.getDataMap().getString(SECTION_TITLE);
+                    String content = dataMapItem.getDataMap().getString(SECTION_TITLE);
+                    Log.e("WIKI________TITLE", title);
+                    sections.add(new String[]{title, content});
+                }
+            }
+        }
+
+        for(DataEvent dataEvent: dataEvents) {
+            if (dataEvent.getType() == DataEvent.TYPE_CHANGED) {
                 if (FLICKR_PATH.equals(dataEvent.getDataItem().getUri().getPath())) {
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(dataEvent.getDataItem());
                     Bitmap img = loadBitmapFromAsset(dataMapItem.getDataMap().getAsset(FLICKR_IMAGE));
-                    String time = dataMapItem.getDataMap().getString(FLICKR_TIMESTAMP);
                     String views = dataMapItem.getDataMap().getString(FLICKR_VIEWS);
                     String id = dataMapItem.getDataMap().getString(FLICKR_ID);
                     flickr_images.add(new FlickrImage(views, "Phumblr #"+id, img, id));
@@ -115,9 +126,8 @@ public class NotificationUpdateService extends WearableListenerService implement
             if (dataEvent.getType() == DataEvent.TYPE_CHANGED) {
                 if (WIKI_PATH.equals(dataEvent.getDataItem().getUri().getPath())) {
                     DataMapItem dataMapItem = DataMapItem.fromDataItem(dataEvent.getDataItem());
-                    String time = dataMapItem.getDataMap().getString(WIKI_TIMESTAMP);
                     String title = dataMapItem.getDataMap().getString(WIKI_TITLE);
-                    String id = dataMapItem.getDataMap().getString(WIKI_ID);
+                    Log.e("WIKI________TITLE", title);
                     String distance = dataMapItem.getDataMap().getString(WIKI_DISTANCE);
                     wikis.add(new Wikipedia(title, distance, sections));
                     sections = new ArrayList<>();

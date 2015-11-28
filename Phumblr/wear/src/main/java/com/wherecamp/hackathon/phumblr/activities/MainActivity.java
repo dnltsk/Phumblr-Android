@@ -84,9 +84,11 @@ public class MainActivity extends FragmentActivity {
     private static final class FlickrGridPagerAdapter extends FragmentGridPagerAdapter {
 
         private static final int SUMMARY = 0;
-        private static final int ADD_NOTES = 1;
-        private static final int WIKIS = 2;
-        private static final int COLUMNS = 3;
+        private static final int IMAGE = 1;
+
+        private static final int ADD_NOTES = 2;
+        private static final int WIKIS = 3;
+        private static final int COLUMNS = 4;
 
         private FlickrGridPagerAdapter(FragmentActivity activity) {
             super(activity.getFragmentManager());
@@ -99,6 +101,8 @@ public class MainActivity extends FragmentActivity {
                     String title = flickr_images.get(row).getTitle();
                     String views = flickr_images.get(row).getViews();
                     return CardFragment.create(title, views);
+                case IMAGE:
+                    return new Fragment();
                 case ADD_NOTES:
                     return new FragmentAddNote();
                 case WIKIS:

@@ -41,7 +41,10 @@ public class WikiActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wiki);
 
-        image_id = getIntent().getParcelableExtra("image_id");
+        wikis = WearApplication.getWikis();
+        flickr_images = WearApplication.getFlickrImages();
+
+        image_id = getIntent().getIntExtra("image_id", 0);
 
         // Get UI references
         mImageView = (ImageView) findViewById(R.id.wiki_image);
@@ -128,7 +131,7 @@ public class WikiActivity extends FragmentActivity {
                     max = len;
                 }
             }
-            return max;
+            return 5;
         }
     }
 }

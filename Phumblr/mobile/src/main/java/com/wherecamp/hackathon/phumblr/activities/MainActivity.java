@@ -1,14 +1,17 @@
 package com.wherecamp.hackathon.phumblr.activities;
 
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -17,7 +20,6 @@ import android.view.MenuItem;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEventBuffer;
@@ -32,7 +34,6 @@ import com.wherecamp.hackathon.phumblr.utils.ElementParser;
 import com.wherecamp.hackathon.phumblr.utils.ImageUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 
 public class MainActivity extends AppCompatActivity implements
@@ -43,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements
         FlickrImage.OnImageLoad {
 
     private static final String TAG =  "MainActivity";
+
+    private static final int SIGNAL_TIME = 5000;
 
     public static final String SECTION_PATH = "/section";
     public static final String SECTION_TITLE = "title";
@@ -67,12 +70,13 @@ public class MainActivity extends AppCompatActivity implements
     public static final String NOTIFICATION_TITLE = "title";
     public static final String NOTIFICATION_CONTENT = "content";
 
-    private String url="http://192.168.178.22:8090/live?lat=52.51612&lon=13.37899";
+    private String url_head="http://141.64.171.114:8090/live?lat=";
 
     private ArrayList<FlickrImage> flickrImages = new ArrayList<>();
     private ArrayList<Wikipedia> wikipedias = new ArrayList<>();
 
-    private boolean loading_pics = true;
+    private LocationManager locationManager;
+    private Location location;
 
     private int bitmap_count;
 
@@ -85,6 +89,8 @@ public class MainActivity extends AppCompatActivity implements
 
         createToolbar();
         createGoogleApiClient();
+        setSensorManagement();
+        startSniffingAround();
         createFloatingActionButton();
     }
 
@@ -101,32 +107,68 @@ public class MainActivity extends AppCompatActivity implements
                 .build();
     }
 
+    /**
+     * Method sets LocationManager, User-Location, SensorManager and the Sensors.
+     */
+    private void setSensorManagement() {
+        /* Location */
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        registerSensors();
+    }
+
+    /**
+     * Method registers Location and Internal Sensors, particularly the Accelerometer,
+     * the Magnetometer with the SensorManager and GPS and WiFi with the LocationManager.
+     */
+    private void registerSensors() {
+        // GPS
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                SIGNAL_TIME, 10, locationListener);
+        // WiFi
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                SIGNAL_TIME, 10, locationListener);
+    }
+
+
     private void createFloatingActionButton() {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
+
+                double lat = 52.51612;
+                double lon = 13.37899;
+                String url = url_head + lat + "&lon=" + lon;
                 VolleyRequests request = new VolleyRequests(MainActivity.this, url);
                 request.makeRequest();
 
                 // test
-                String resp = "{\"flickr\":[{\"views\":36081,\"url\":\"https://farm8.staticflickr.com/7147/6642332401_8eff5cb672_n.jpg\",\"photoId\":6642332401},{\"views\":29310,\"url\":\"https://farm3.staticflickr.com/2946/15318111240_e9832c1388_n.jpg\",\"photoId\":15318111240},{\"views\":29283,\"url\":\"https://farm6.staticflickr.com/5598/15504850465_cd9c866280_n.jpg\",\"photoId\":15504850465},{\"views\":28021,\"url\":\"https://farm6.staticflickr.com/5129/5223692318_e97fc7d7e3_n.jpg\",\"photoId\":5223692318},{\"views\":27083,\"url\":\"https://farm4.staticflickr.com/3851/14555097821_15d238bbef_n.jpg\",\"photoId\":14555097821}],\"wiki\":[{\"title\":\"#S_Berlin_Brandenburger_Tor\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null},{\"title\":\"#Radweg_BerlinâKopenhagen\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null},{\"title\":\"Berlin\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null},{\"title\":\"Pariser Platz\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null},{\"title\":\"#Berlin_Brandenburger_Tor\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null}]}";
-                ElementParser ep = new ElementParser(resp);
+                //String resp = "{\"flickr\":[{\"views\":36081,\"url\":\"https://farm8.staticflickr.com/7147/6642332401_8eff5cb672_n.jpg\",\"photoId\":6642332401},{\"views\":29310,\"url\":\"https://farm3.staticflickr.com/2946/15318111240_e9832c1388_n.jpg\",\"photoId\":15318111240},{\"views\":29283,\"url\":\"https://farm6.staticflickr.com/5598/15504850465_cd9c866280_n.jpg\",\"photoId\":15504850465},{\"views\":28021,\"url\":\"https://farm6.staticflickr.com/5129/5223692318_e97fc7d7e3_n.jpg\",\"photoId\":5223692318},{\"views\":27083,\"url\":\"https://farm4.staticflickr.com/3851/14555097821_15d238bbef_n.jpg\",\"photoId\":14555097821}],\"wiki\":[{\"title\":\"#S_Berlin_Brandenburger_Tor\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null},{\"title\":\"#Radweg_BerlinâKopenhagen\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null},{\"title\":\"Berlin\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null},{\"title\":\"Pariser Platz\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null},{\"title\":\"#Berlin_Brandenburger_Tor\",\"distanceFromHotspotInMeter\":0.0,\"wikiId\":null}]}";
+                //ElementParser ep = new ElementParser(resp);
 
-                flickrImages = ep.getFlickrImages();
+                //flickrImages = ep.getFlickrImages();
 
-                bitmap_count = 0;
-                for (FlickrImage img : flickrImages) {
-                    img.loadBitmap(MainActivity.this);
-                }
+                //bitmap_count = 0;
+                //for (FlickrImage img : flickrImages) {
+                //    img.loadBitmap(MainActivity.this);
+                //}
 
                 //wikipedias = ep.getWikipedias();
             }
         });
     }
 
+    private void startSniffingAround() {
 
+        location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        if (location == null)
+            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (location == null)
+            location = new Location("default");
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -172,6 +214,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onStop();
         Wearable.DataApi.removeListener(googleClient, this);
         googleClient.disconnect();
+        locationManager.removeUpdates(locationListener);
     }
 
     @Override
@@ -181,9 +224,15 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onTextResponse(String text) {
-        ElementParser ep = new ElementParser(text);
-        flickrImages = ep.getFlickrImages();
-        wikipedias = ep.getWikipedias();
+        if (!text.equals("{}")) {
+            ElementParser ep = new ElementParser(text);
+            flickrImages = ep.getFlickrImages();
+            bitmap_count = 0;
+            for (FlickrImage img : flickrImages) {
+                img.loadBitmap(MainActivity.this);
+            }
+            wikipedias = ep.getWikipedias();
+        }
     }
 
     @Override
@@ -206,6 +255,10 @@ public class MainActivity extends AppCompatActivity implements
     private void sendNotification() {
         if (googleClient.isConnected()) {
             Log.e(TAG, "sendNotification()");
+            // TODO: test to real
+            // createFloatingActionButton()
+            // here
+            // ElementParser.parse()
 
             // WIKI
             for (int i=0; i<wikipedias.size(); i++) {
@@ -215,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements
                     PutDataMapRequest dataMapRequest = PutDataMapRequest.create(SECTION_PATH);
                     dataMapRequest.getDataMap().putString(SECTION_TITLE, sections.get(j)[0]);
                     dataMapRequest.getDataMap().putString(SECTION_CONTENT, sections.get(j)[1]);
+                    Log.e("section", sections.get(j)[0]);
                     PutDataRequest putDataRequest = dataMapRequest.asPutDataRequest();
                     Wearable.DataApi.putDataItem(googleClient, putDataRequest);
                 }
@@ -253,4 +307,39 @@ public class MainActivity extends AppCompatActivity implements
             Log.e(TAG, "No connection to wearable available!");
         }
     }
+
+    /**
+     * LocationListener is receiving notifications from the LocationManager when the location
+     * has changed. The Interface methods are called if the LocationListener has been registered
+     * with the LocationManager service.
+     */
+    private LocationListener locationListener = new LocationListener() {
+
+        /**
+         * callback method (asynchronous) when user position changed.
+         * @param   current  Location object containing latitude and longitude in degrees
+         */
+        @Override
+        public void onLocationChanged(Location current) {
+            location = current;
+            double lat = location.getLatitude();
+            double lon = location.getLongitude();
+            String url = url_head + lat + "&lon=" + lon;
+            Log.e(TAG, url);
+            VolleyRequests request = new VolleyRequests(MainActivity.this, url);
+            request.makeRequest();
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+        }
+    };
 }

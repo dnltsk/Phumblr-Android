@@ -70,12 +70,12 @@ public class ElementParser {
                 flickrImages.add(new FlickrImage(url, views, ""+(i+1)));
             }
 
-            /*
+
             for (int i=0; i<wiks.length(); i++) {
                 JSONObject wk_js = (JSONObject) wiks.get(i);
                 String title = wk_js.getString(TITLE_TAG);
                 String dist = wk_js.getString(DISTANCE_TAG);
-                String wiki_id = wk_js.getString(WIKI_ID_TAG);
+                //String wiki_id = wk_js.getString(WIKI_ID_TAG);
                 JSONArray secs = wk_js.getJSONArray(SECTIONS_TAG);
 
                 ArrayList<String[]> sections = new ArrayList<>();
@@ -87,8 +87,8 @@ public class ElementParser {
                     sections.add(new String[]{section_title, content});
                 }
 
-                wikipedias.add(new Wikipedia(title, dist, wiki_id, sections));
-            }*/
+                wikipedias.add(new Wikipedia(title, dist, "", sections));
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

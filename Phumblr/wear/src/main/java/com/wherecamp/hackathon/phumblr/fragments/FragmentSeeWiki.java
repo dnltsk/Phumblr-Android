@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.wearable.view.DelayedConfirmationView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,11 +27,8 @@ public class FragmentSeeWiki extends Fragment {
     private TextView mTextView;
     private Activity activity;
 
-    public int getRow() {
-        return row;
-    }
 
-    private int row;
+    public int row;
 
     @Override
     public void onAttach(Activity activity) {
@@ -59,7 +57,7 @@ public class FragmentSeeWiki extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(activity, WikiActivity.class);
-                intent.putExtra("image_id", getRow());
+                intent.putExtra("image_id", row);
                 startActivity(intent);
             }
         });
