@@ -136,7 +136,7 @@ public class NotificationUpdateService extends WearableListenerService implement
         }
 
         WearApplication.setFlickrImages(flickr_images);
-        WearApplication.setWikis(wikis);
+        WearApplication.setWikis(wikis); //bla
 
         for(DataEvent dataEvent: dataEvents) {
             if (dataEvent.getType() == DataEvent.TYPE_CHANGED) {
