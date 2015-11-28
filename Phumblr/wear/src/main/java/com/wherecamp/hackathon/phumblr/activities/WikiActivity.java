@@ -12,6 +12,7 @@ import android.support.wearable.view.CardFragment;
 import android.support.wearable.view.DotsPageIndicator;
 import android.support.wearable.view.FragmentGridPagerAdapter;
 import android.support.wearable.view.GridViewPager;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.wherecamp.hackathon.phumblr.R;
@@ -43,6 +44,8 @@ public class WikiActivity extends FragmentActivity {
 
         wikis = WearApplication.getWikis();
         flickr_images = WearApplication.getFlickrImages();
+
+        Log.e("length", ""+wikis.size());
 
         image_id = getIntent().getIntExtra("image_id", 0);
 
